@@ -19,6 +19,9 @@ npm start
 
 inside both root and frontend directory. Backend will be served at port 3001 and frontend at port 3000.
 
+## Modifying the game
+
+If you modify [the game](https://github.com/nichess-game/game), you need to copy the generated .js files to server/Game and frontend/src/Game.
 
 ## Contribute
 
