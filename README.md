@@ -3,8 +3,6 @@
 Hosted at http://www.nichess.org (using Heroku free tier. If it doesn't load instantly, wait 10
 seconds and refresh the page).
 
-Looks very bad on mobile, will fix soonish.
-
 For more information about the game, visit: https://nichess-game.github.io
 
 ## Run locally
@@ -23,4 +21,4 @@ inside both root and frontend directory. Backend will be served at port 3001 and
 
 ## Contribute
 
-This project is in very early days, but if you'd like to contribute, send an email to contact@nichess.org
+If you're interested in contributing, join [the Gitter chat room](https://gitter.im/nichess-game/community?utm_source=share-link&utm_medium=link&utm_campaign=share-link).
