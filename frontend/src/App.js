@@ -3,7 +3,6 @@ import { React, useEffect, useState } from 'react'
 import './App.css';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
 import { gameSubject } from './Game'
-import Board from './components/Board'
 import About from './views/About'
 import Rules from './views/Rules'
 import PlayAgainstTheWorld from './views/PlayAgainstTheWorld'
@@ -21,6 +20,8 @@ function App() {
     const subscribe = gameSubject.subscribe((game) => setGame(game))
     return () => subscribe.unsubscribe()
   }, [])
+
+  document.title = "Nichess"
 
   return (
     <div className="main">
