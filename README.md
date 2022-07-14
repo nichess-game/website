@@ -3,11 +3,11 @@
 Hosted at http://www.nichess.org (using Heroku free tier. If it doesn't load instantly, wait 10
 seconds and refresh the page).
 
-For more information about the game, visit: https://nichess-game.github.io
+Documentation: https://nichess-game.github.io
 
 ## Run locally
 
-If you'd like to run this locally, compile [the game](https://github.com/nichess-game/game/tree/master/typescript) and copy the generated .js files to server/Game and frontend/src/Game
+Compile [the game](https://github.com/nichess-game/game/tree/master/typescript) and copy the generated .js files to server/Game and frontend/src/Game
 
 Then run:
 
