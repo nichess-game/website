@@ -68,10 +68,10 @@ app.get("/reset-global-game", (req, res) => {
 });
 
 
-app.use(express.static(path.resolve(__dirname, '../private-game-front/build')))
+app.use(express.static(path.resolve(__dirname, '../frontend/build')))
 
 app.get('*', (req, res) => {
-  res.sendFile(path.resolve(__dirname,'../private-game-front/build', 'index.html'));
+  res.sendFile(path.resolve(__dirname,'../frontend/build', 'index.html'));
 });
 
 server.listen(PORT, () => console.log(`Lisening on port :${PORT}`))
