@@ -63,13 +63,13 @@ export default function BoardForGlobalGame({board, game}) {
 
 
   function getXYPosition(i) {
-    const x = i % 10
-    const y = Math.abs(Math.floor(i / 10) - 9)
+    const x = i % 8
+    const y = Math.abs(Math.floor(i / 8) - 7)
     return {x, y}
   }
   function getIndexFromXY(x, y) {
-    //return y*10 + x
-    return Math.abs(9-y)*10 + x // TODO: this looks wrong but gives the right output
+    //return y*8 + x
+    return Math.abs(7-y)*8 + x // TODO: this looks wrong but gives the right output
   }
   function isBlack(i) {
     const {x, y} = getXYPosition(i)
