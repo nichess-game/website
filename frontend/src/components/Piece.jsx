@@ -6,18 +6,15 @@ export default function Piece({ piece }) {
   if (/Mobi|Android/i.test(navigator.userAgent)) { // TODO: Write better solution for mobile.
     pieceHealthClass = 'piece-health-mobile'
   }
+
   return ( 
-    <div>
     <div className="piece-container">
       {piece.type != 'empty' &&
       <div className={pieceHealthClass}>{piece.healthPoints} | {piece.abilityPoints}</div>
       }
-    </div>
-
-    <div className="piece-container">
-      <img src={ pieceImg } alt="" className="piece"/>
-    </div>
-
+      <div className="piece">
+        <img src={ pieceImg } alt="" className="piece"/>
+      </div>
     </div>
   )
 }
