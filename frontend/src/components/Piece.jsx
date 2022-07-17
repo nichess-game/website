@@ -6,15 +6,24 @@ export default function Piece({ piece }) {
   if (/Mobi|Android/i.test(navigator.userAgent)) { // TODO: Write better solution for mobile.
     pieceHealthClass = 'piece-health-mobile'
   }
+  var pieceAbilityPointsClass = 'piece-ability-points'
+  if (/Mobi|Android/i.test(navigator.userAgent)) { // TODO: Write better solution for mobile.
+    pieceAbilityPointsClass = 'piece-ability-points-mobile'
+  }
+
 
   return ( 
     <div className="piece-container">
       {piece.type != 'empty' &&
-      <div className={pieceHealthClass}>{piece.healthPoints} | {piece.abilityPoints}</div>
+      <div className={pieceHealthClass}>{piece.healthPoints}</div>
       }
       <div className="piece">
         <img src={ pieceImg } alt="" className="piece"/>
       </div>
+      {piece.type != 'empty' &&
+      <div className={pieceAbilityPointsClass}>{piece.abilityPoints}</div>
+      }
+
     </div>
   )
 }

@@ -11,6 +11,22 @@ export default function BoardForSelfPlay({board, game}) {
   const [abilityDestinationCoordinates, setAbilityDestinationCoordinates] = useState({})
   const [legalMoves, setLegalMoves] = useState([])
   const [legalAbilities, setLegalAbilities] = useState([])
+  const [lastMove, setLastMove] = useState({srcX: -1, srcY: -1, dstX: -1, dstY: -1})
+  const [lastAbility, setLastAbility] = useState({srcX: -1, srcY: -1, dstX: -1, dstY: -1})
+
+  useEffect(() => {
+    // I don't understand how this works, why is it not always defined?
+    if (typeof game.game === 'undefined')
+      return
+    var history = game.game.history()
+    if(history.length == 0) {
+      setLastMove({ srcX: -1, srcY: -1, dstX: -1, dstY: -1 })
+      setLastAbility({ srcX: -1, srcY: -1, dstX: -1, dstY: -1 })
+    } else {
+      setLastMove(history[history.length-1][0])
+      setLastAbility(history[history.length-1][1])
+    }
+  }, [game])
 
   function getXYPosition(i) {
     const x = i % 8
@@ -18,13 +34,21 @@ export default function BoardForSelfPlay({board, game}) {
     return {x, y}
   }
   function getIndexFromXY(x, y) {
-    //return y*10 + x
-    return Math.abs(7-y)*8 + x // TODO: this looks wrong but gives the right output
+    return Math.abs(7-y)*8 + x
   }
   function isBlack(i) {
     const {x, y} = getXYPosition(i)
     return (x + y) % 2 == 1
   }
+  function isLastMove(i) {
+    const {x, y} = getXYPosition(i)
+    return (lastMove.srcX == x && lastMove.srcY == y) || (lastMove.dstX == x && lastMove.dstY == y)
+  }
+  function isLastAbility(i) {
+    const {x, y} = getXYPosition(i)
+    return (lastAbility.srcX == x && lastAbility.srcY == y) || (lastAbility.dstX == x && lastAbility.dstY == y)
+  }
+
   function isSelectedAsMovementSource(i) {
     const {x, y} = getXYPosition(i)
     if(x === movementSourceCoordinates.x && y === movementSourceCoordinates.y){
@@ -59,8 +83,20 @@ export default function BoardForSelfPlay({board, game}) {
     var retval = '' 
     if(isBlack(i)) {
       retval = 'square-black'
+      if(isLastMove(i)) {
+        retval = 'square-black-last-move'
+      }
+      if(isLastAbility(i)) {
+        retval = 'square-black-last-ability'
+      }
     } else {
       retval = 'square-white'
+      if(isLastMove(i)) {
+        retval = 'square-white-last-move'
+      }
+      if(isLastAbility(i)) {
+        retval = 'square-white-last-ability'
+      }
     }
     if(phase == 1) {
       if(isSelectedAsMovementSource(i)){
@@ -94,7 +130,7 @@ export default function BoardForSelfPlay({board, game}) {
     const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
     setMovementSourceCoordinates(coordinates)
     let legalMoves = game.game.legalMoves(coordinates.x, coordinates.y)
-    let moveIndices = legalMoves.map(coordinates => getIndexFromXY(coordinates.x, coordinates.y))
+    let moveIndices = legalMoves.map(coordinates => getIndexFromXY(coordinates.dstX, coordinates.dstY))
     if(legalMoves.length != 0) {
       setLegalMoves(moveIndices)
       setPhase(1)
@@ -122,7 +158,7 @@ export default function BoardForSelfPlay({board, game}) {
     const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
     setAbilitySourceCoordinates(coordinates)
     let legalAbilities = game.game.legalAbilities(coordinates.x, coordinates.y)
-    let abilityIndices = legalAbilities.map(coordinates => getIndexFromXY(coordinates.x, coordinates.y))
+    let abilityIndices = legalAbilities.map(coordinates => getIndexFromXY(coordinates.dstX, coordinates.dstY))
     if(legalAbilities.length != 0) {
       setLegalAbilities(abilityIndices)
       setPhase(3)
