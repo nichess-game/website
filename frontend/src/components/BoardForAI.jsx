@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import BoardSquare from './BoardSquare'
 import { Player } from '../constants/constants.js'
 import { handleMove, handleAbility, updateView } from '../Game'
+import { play } from '../AiAgent'
 
 export default function BoardForSelfPlay({board, game}) {
   const [phase, setPhase] = useState(0)
@@ -177,6 +178,15 @@ export default function BoardForSelfPlay({board, game}) {
 
     
     if(success) {
+      // playing against "ai"
+      let opponentAction = play(game.game, 1)
+      if (opponentAction[0] && opponentAction[1]) {
+        let move = opponentAction[0]
+        handleMove(move.srcX, move.srcY, move.dstX, move.dstY)
+        let ability = opponentAction[1]
+        handleAbility(ability.srcX, ability.srcY, ability.dstX, ability.dstY)
+      } 
+
       setMovementSourceCoordinates({ })
       setMovementDestinationCoordinates({ })
       setAbilitySourceCoordinates({ })
