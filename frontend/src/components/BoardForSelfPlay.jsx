@@ -13,6 +13,7 @@ export default function BoardForSelfPlay({board, game}) {
   const [legalAbilities, setLegalAbilities] = useState([])
   const [lastMove, setLastMove] = useState({srcX: -1, srcY: -1, dstX: -1, dstY: -1})
   const [lastAbility, setLastAbility] = useState({srcX: -1, srcY: -1, dstX: -1, dstY: -1})
+  const [gameStatus, setGameStatus] = useState("Player 1's move")
 
   useEffect(() => {
     // I don't understand how this works, why is it not always defined?
@@ -150,6 +151,7 @@ export default function BoardForSelfPlay({board, game}) {
     let success = handleMove(movementSourceCoordinates.x, movementSourceCoordinates.y, coordinates.x, coordinates.y)
     if(success) {
       setPhase(2)
+      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s ability")
     }
 
     return
@@ -182,6 +184,8 @@ export default function BoardForSelfPlay({board, game}) {
       setAbilitySourceCoordinates({ })
       setAbilityDestinationCoordinates({ })
       setPhase(0)
+      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
+
     }
     let [gameOver, winner] = game.game.gameOver()
     if(gameOver) {
@@ -205,13 +209,47 @@ export default function BoardForSelfPlay({board, game}) {
     }
   }
 
+  function skipMove() {
+    let success = handleMove(-1, -1, -1, -1)
+    if(success) {
+      setPhase(2)
+      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s ability")
+    }
+    return
+  }
+
+  function skipAbility() {
+    let success = handleAbility(-1, -1, -1, -1)
+    if(success) {
+      setPhase(0)
+      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
+    }
+    return
+  }
+
+
+  const statusStyle = {
+    'padding': '10px',
+    'color': 'white'
+  }
+
   return (
     <div className='board'>
-      {board.flat().map((piece, i) => (
-        <div key={i} className="square" onClick={() => handleClick(i)}>
-            <BoardSquare piece={piece} bgClass={getBgClass(i)} />
+      <div className='board'>
+        {board.flat().map((piece, i) => (
+          <div key={i} className="square" onClick={() => handleClick(i)}>
+              <BoardSquare piece={piece} bgClass={getBgClass(i)} />
+          </div>
+        ))}
+      </div>
+      <div>
+        <div style={statusStyle}>
+          <button type="button" onClick={skipMove}>Skip Move</button> - <button type="button" onClick={skipAbility}>Skip Ability</button>
         </div>
-      ))}
+        <div style={statusStyle}>
+          Status: {gameStatus}
+        </div>
+      </div>
     </div>
   )
 }
