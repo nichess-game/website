@@ -64,25 +64,25 @@ export default function BoardForGlobalGame({board, game}) {
   }, [game, initialRenderDone])
 
   useEffect(() => {
-    if(!game.game)
-      return
-    var history = game.game.history()
-    if(history.length == 0) {
-      setLastMove({ srcX: -1, srcY: -1, dstX: -1, dstY: -1 })
-      setLastAbility({ srcX: -1, srcY: -1, dstX: -1, dstY: -1 })
-    } else {
-      setLastMove(history[history.length-1][0])
-      setLastAbility(history[history.length-1][1])
-    }
-  }, [game])
-
-
-  useEffect(() => {
     if((!socket) || (!game) || (onMessageAdded))
       return
     socket.addEventListener('message', function (event) {
-      const encodedBoard = event.data.slice(1,-1);
+      const msg = event.data.slice(1,-1);
+      const encodedBoard = msg.split('}')[0]
+      const lastMoveAndAbility = msg.split('}')[1]
+      const s = lastMoveAndAbility.split(',')
+      const x1 = parseInt(s[0])
+      const y1 = parseInt(s[1])
+      const x2 = parseInt(s[2])
+      const y2 = parseInt(s[3])
+      const x3 = parseInt(s[4])
+      const y3 = parseInt(s[5])
+      const x4 = parseInt(s[6])
+      const y4 = parseInt(s[7])
+
       game.game.boardFromString(encodedBoard)
+      setLastMove({srcX: x1, srcY: y1, dstX: x2, dstY: y2})
+      setLastAbility({srcX: x3, srcY: y3, dstX: x4, dstY: y4})
       setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
       updateView()
     });

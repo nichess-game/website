@@ -29,14 +29,16 @@ wss.on('connection', function connection(ws) {
     let x4 = parseInt(s[6])
     let y4 = parseInt(s[7])
 
-    
+
 
     let success1 = game.move(x1,y1,x2,y2)
     let success2 = game.ability(x3,y3,x4,y4)
     let [gameOver, winner] = game.gameOver()
-    if(gameOver)
+    if(gameOver) {
       game.reset()
-    let response = game.boardToString()
+      s = '-1,-1,-1,-1,-1,-1,-1,-1'
+    }
+    let response = game.boardToString() + '}' + s
 
     wss.clients.forEach(function each(client) {
       if (client.readyState === WebSocket.OPEN) {
