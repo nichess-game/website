@@ -1,7 +1,7 @@
 import { React, useEffect, useState } from 'react'
 import '../App.css';
 import { BrowserRouter, Link, Route, Routes } from 'react-router-dom'
-import { gameSubject } from '../Game'
+import { gameSubject } from '../GlobalGame'
 import BoardForGlobalGame from '../components/BoardForGlobalGame'
 
 function PlayAgainstTheWorld() {

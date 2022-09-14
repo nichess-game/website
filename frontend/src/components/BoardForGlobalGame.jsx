@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import BoardSquare from './BoardSquare'
 import { Player } from '../constants/constants.js'
-import { handleMove, handleAbility, updateView } from '../Game'
+import { handleMove, handleAbility, updateView } from '../GlobalGame'
 
 export default function BoardForGlobalGame({board, game}) {
   const [phase, setPhase] = useState(0)

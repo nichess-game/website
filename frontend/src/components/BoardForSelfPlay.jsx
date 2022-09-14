@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import BoardSquare from './BoardSquare'
 import { Player } from '../constants/constants.js'
-import { handleMove, handleAbility, updateView } from '../Game'
+import { handleMove, handleAbility, updateView } from '../GameAgainstSelf'
 
 export default function BoardForSelfPlay({board, game}) {
   const [phase, setPhase] = useState(0)
