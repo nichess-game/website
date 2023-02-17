@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import BoardSquare from './BoardSquare'
 import { Player } from '../constants/constants.js'
 import { handleMove, handleAbility, updateView } from '../GameAgainstAI'
-import { play } from '../AiAgent'
+import createModule from "../ai.mjs";
 
 export default function BoardForSelfPlay({board, game}) {
   const [phase, setPhase] = useState(0)
@@ -36,7 +36,7 @@ export default function BoardForSelfPlay({board, game}) {
     return {x, y}
   }
   function getIndexFromXY(x, y) {
-    return Math.abs(7-y)*8 + x
+    return Math.abs(7 - y) * 8 + x
   }
   function isBlack(i) {
     const {x, y} = getXYPosition(i)
@@ -176,32 +176,7 @@ export default function BoardForSelfPlay({board, game}) {
 
     const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
     setAbilityDestinationCoordinates(coordinates)
-    let success = handleAbility(abilitySourceCoordinates.x, abilitySourceCoordinates.y, coordinates.x, coordinates.y)
-
-    
-    if(success) {
-      // playing against "ai"
-      let opponentAction = play(game.game, 1)
-      if (opponentAction[0] && opponentAction[1]) {
-        let move = opponentAction[0]
-        handleMove(move.srcX, move.srcY, move.dstX, move.dstY)
-        let ability = opponentAction[1]
-        handleAbility(ability.srcX, ability.srcY, ability.dstX, ability.dstY)
-      } 
-
-      setMovementSourceCoordinates({ })
-      setMovementDestinationCoordinates({ })
-      setAbilitySourceCoordinates({ })
-      setAbilityDestinationCoordinates({ })
-      setPhase(0)
-      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
-    }
-    let [gameOver, winner] = game.game.gameOver()
-    if(gameOver) {
-      game.game.reset()
-      updateView()
-    }
-    return
+    handleAbility(abilitySourceCoordinates.x, abilitySourceCoordinates.y, coordinates.x, coordinates.y)
   }
 
 
@@ -215,29 +190,85 @@ export default function BoardForSelfPlay({board, game}) {
       handleAbilitySourceSelection(coordinates)
     } else if(phase == 3) {
       handleAbilityDestinationSelection(coordinates)
-    }
+      let [gameOver, winner] = game.game.gameOver()
+      if(gameOver) {
+        alert('You LOSE!')
+        game.game.reset()
+        setMovementSourceCoordinates({ })
+        setMovementDestinationCoordinates({ })
+        setAbilitySourceCoordinates({ })
+        setAbilityDestinationCoordinates({ })
+        setPhase(0)
+        setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
+        updateView()
+      } else {
+        AIAction()
+      }
+    } 
   }
 
   function skipMove() {
-    let success = handleMove(-1, -1, -1, -1)
-    if(success) {
-      setPhase(2)
-      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s ability")
+    if(phase == 0 || phase == 1) {
+      let success = handleMove(-1, -1, -1, -1)
+      if(success) {
+        setPhase(2)
+        setGameStatus("Player " + (game.game.playerTurn()+1) + "'s ability")
+      }
     }
-    return
   }
 
   function skipAbility() {
-    let success = handleAbility(-1, -1, -1, -1)
-    if(success) {
-      // playing against "ai"
-      let opponentAction = play(game.game, 1)
-      if (opponentAction[0] && opponentAction[1]) {
-        let move = opponentAction[0]
-        handleMove(move.srcX, move.srcY, move.dstX, move.dstY)
-        let ability = opponentAction[1]
-        handleAbility(ability.srcX, ability.srcY, ability.dstX, ability.dstY)
-      } 
+    if(phase == 2 || phase == 3) {
+      handleAbility(-1, -1, -1, -1)
+      AIAction()
+    }
+  }
+
+  function AIAction() {
+    createModule().then((Module) => {
+      var computeAction = Module.cwrap('computeAIAction', 'number', ['string'], [])
+      var boardStr = game.game.boardToString()
+      // TODO:
+      // C++ Nichess uses different board representation (doesn't track phase)
+      // TypeScript Nichess will be rewritten to match the C++ version, but for now this will do.
+      var modifiedBoardStr = boardStr.slice(0, 2) + boardStr.slice(4) 
+      let action = computeAction(modifiedBoardStr)
+      // action is a 9 digit int in form:
+      // 1 moveSrcIdx moveDstIdx abilitySrcIdx abilityDstIdx
+      // First digit is reserved as 1 to ensure that the action always has the same number of
+      // digits.
+      // Value 99 is reserved for MOVE_SKIP and ABILITY_SKIP.
+      let moveSrcIdx = Math.floor(action / 1000000) % 100
+      let moveDstIdx = Math.floor(action / 10000) % 100
+      let abilitySrcIdx = Math.floor(action / 100) % 100
+      let abilityDstIdx = action % 100
+      // converting indexes to x y coordinates
+      var moveSrcX, moveSrcY, moveDstX, moveDstY, abilitySrcX, abilitySrcY, abilityDstX, abilityDstY
+      if(moveSrcIdx == 99) { // skip move
+        moveSrcX = -1
+        moveSrcY = -1
+        moveDstX = -1
+        moveDstY = -1
+      } else {
+        moveSrcX = moveSrcIdx - Math.floor(moveSrcIdx / 8) * 8
+        moveSrcY = Math.floor(moveSrcIdx / 8)
+        moveDstX = moveDstIdx - Math.floor(moveDstIdx / 8) * 8
+        moveDstY = Math.floor(moveDstIdx / 8)
+      }
+
+      if(moveSrcIdx == 99) { // skip ability
+        abilitySrcX = -1
+        abilitySrcY = -1
+        abilityDstX = -1
+        abilityDstY = -1
+      } else {
+        abilitySrcX = abilitySrcIdx - Math.floor(abilitySrcIdx / 8) * 8
+        abilitySrcY = Math.floor(abilitySrcIdx / 8)
+        abilityDstX = abilityDstIdx - Math.floor(abilityDstIdx / 8) * 8
+        abilityDstY = Math.floor(abilityDstIdx / 8)
+      }
+      handleMove(moveSrcX, moveSrcY, moveDstX, moveDstY)
+      handleAbility(abilitySrcX, abilitySrcY, abilityDstX, abilityDstY)
 
       setMovementSourceCoordinates({ })
       setMovementDestinationCoordinates({ })
@@ -245,20 +276,21 @@ export default function BoardForSelfPlay({board, game}) {
       setAbilityDestinationCoordinates({ })
       setPhase(0)
       setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
-    }
-    let [gameOver, winner] = game.game.gameOver()
-    if(gameOver) {
-      game.game.reset()
-      updateView()
-    }
-    return
+      let [gameOver, winner] = game.game.gameOver()
+      if(gameOver) {
+        alert('You LOSE!')
+        game.game.reset()
+        updateView()
+      }
+
+    })
   }
-
-
+  
   const statusStyle = {
     'padding': '10px',
     'color': 'white'
   }
+  
 
   return (
     <div className='board'>
