@@ -171,12 +171,13 @@ export default function BoardForSelfPlay({board, game}) {
   function handleAbilityDestinationSelection(coordinates) {
     if(coordinates.x == abilitySourceCoordinates.x && coordinates.y == abilitySourceCoordinates.y){
       setPhase(2)
-      return
+      return false
     }
 
     const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
     setAbilityDestinationCoordinates(coordinates)
     handleAbility(abilitySourceCoordinates.x, abilitySourceCoordinates.y, coordinates.x, coordinates.y)
+    return true
   }
 
 
@@ -189,20 +190,22 @@ export default function BoardForSelfPlay({board, game}) {
     } else if(phase == 2) {
       handleAbilitySourceSelection(coordinates)
     } else if(phase == 3) {
-      handleAbilityDestinationSelection(coordinates)
-      let [gameOver, winner] = game.game.gameOver()
-      if(gameOver) {
-        alert('You LOSE!')
-        game.game.reset()
-        setMovementSourceCoordinates({ })
-        setMovementDestinationCoordinates({ })
-        setAbilitySourceCoordinates({ })
-        setAbilityDestinationCoordinates({ })
-        setPhase(0)
-        setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
-        updateView()
-      } else {
-        AIAction()
+      var success = handleAbilityDestinationSelection(coordinates)
+      if(success) {
+        let [gameOver, winner] = game.game.gameOver()
+        if(gameOver) {
+          alert('You LOSE!')
+          game.game.reset()
+          setMovementSourceCoordinates({ })
+          setMovementDestinationCoordinates({ })
+          setAbilitySourceCoordinates({ })
+          setAbilityDestinationCoordinates({ })
+          setPhase(0)
+          setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
+          updateView()
+        } else {
+          AIAction()
+        }
       }
     } 
   }
