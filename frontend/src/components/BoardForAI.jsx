@@ -259,7 +259,7 @@ export default function BoardForSelfPlay({board, game}) {
         moveDstY = Math.floor(moveDstIdx / 8)
       }
 
-      if(moveSrcIdx == 99) { // skip ability
+      if(abilitySrcIdx == 99) { // skip ability
         abilitySrcX = -1
         abilitySrcY = -1
         abilityDstX = -1
