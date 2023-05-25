@@ -1,9 +1,6 @@
 # Nichess - Website
 
-Hosted at http://www.nichess.org (using Heroku free tier. If it doesn't load instantly, wait 10
-seconds and refresh the page).
-
-Documentation: https://nichess-game.github.io
+Hosted at https://www.nichess.org
 
 ## Run locally
 
