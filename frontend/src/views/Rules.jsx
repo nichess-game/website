@@ -12,9 +12,7 @@ function Rules() {
         <p>When a unit loses its health points, it's removed from the game.</p>
         <p>Ability points determine how much damage a unit can do to another unit.</p>
         <p>If you selected the wrong piece, you can unselect it by clicking it again.</p>
-        <p>Pawns also have the ability to build a new wall on an empty square or destroy an existing one.</p>
-        <p>Other units do single target damage with their abilities, except for mage, who also damages all opponent's neighbouring units.</p>
-        <p>For more stats about the units, see the <a href="https://nichess-game.github.io/docs/html/rst/units.html" style={{color:"SkyBlue"}}>docs</a>.</p>
+        <p>Units do single target damage with their abilities, except for mage, who also damages all opponent's neighbouring units.</p>
       </div>
     </div>
   )

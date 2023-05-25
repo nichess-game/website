@@ -11,7 +11,7 @@ function About() {
         <p><a className="light-link" href="https://github.com/nichess-game"> Nichess is free and open source</a>.</p>
         <p>More on this soon.</p>
         <h2> Credits </h2>
-        <p> Wall, warrior and pawn icons made by <a className="light-link" href="https://www.flaticon.com/authors/freepik"> Freepik </a> from <a className="light-link" href="https://www.flaticon.com"> www.flaticon.com </a></p>
+        <p> Warrior and pawn icons made by <a className="light-link" href="https://www.flaticon.com/authors/freepik"> Freepik </a> from <a className="light-link" href="https://www.flaticon.com"> www.flaticon.com </a></p>
         <p> Assassin icon made by <a className="light-link" href="https://www.flaticon.com/authors/edtim"> edt.im </a> from <a className="light-link" href="https://www.flaticon.com"> www.flaticon.com </a></p>
 
         <p> Mage icon made by <a className="light-link" href="https://www.flaticon.com/authors/fjstudio"> fjstudio </a> from <a className="light-link" href="https://www.flaticon.com"> www.flaticon.com </a></p>
