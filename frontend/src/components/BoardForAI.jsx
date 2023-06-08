@@ -204,6 +204,7 @@ export default function BoardForSelfPlay({board, game}) {
           setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
           updateView()
         } else {
+          setGameStatus("Waiting for AI's action")
           AIAction()
         }
       }
@@ -223,6 +224,7 @@ export default function BoardForSelfPlay({board, game}) {
   function skipAbility() {
     if(phase == 2 || phase == 3) {
       handleAbility(-1, -1, -1, -1)
+      setGameStatus("Waiting for AI's action")
       AIAction()
     }
   }
