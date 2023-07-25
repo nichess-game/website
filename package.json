@@ -16,7 +16,7 @@
     "tslib": "^2.3.1",
     "web-vitals": "^2.1.4"
   },
- "scripts": {
+  "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
@@ -27,7 +27,9 @@
       "react-app",
       "react-app/jest"
     ],
-    "ignorePatterns": ["src/ai.mjs"]
+    "ignorePatterns": [
+      "src/ai.mjs"
+    ]
   },
   "browserslist": {
     "production": [

@@ -1,33 +1,29 @@
 import React, { useState, useEffect } from 'react'
 import BoardSquare from './BoardSquare'
-import { Player } from '../constants/constants.js'
-import { handleMove, handleAbility, updateView } from '../GameAgainstAI'
+import { handleMove, handleAbility, updateView, pieceBelongsToCurrentPlayer, isSquareEmpty } from '../GameAgainstAI'
+import { MOVE_SKIP, ABILITY_SKIP } from 'nichess'
 import createModule from "../ai.mjs";
 
 export default function BoardForSelfPlay({board, game}) {
   const [phase, setPhase] = useState(0)
-  const [movementSourceCoordinates, setMovementSourceCoordinates] = useState({})
-  const [movementDestinationCoordinates, setMovementDestinationCoordinates] = useState({})
-  const [abilitySourceCoordinates, setAbilitySourceCoordinates] = useState({})
-  const [abilityDestinationCoordinates, setAbilityDestinationCoordinates] = useState({})
+  const [moveSrcIdx, setMoveSrcIdx] = useState(MOVE_SKIP)
+  const [moveDstIdx, setMoveDstIdx] = useState(MOVE_SKIP)
+  const [abilitySrcIdx, setAbilitySrcIdx] = useState(ABILITY_SKIP)
+  const [abilityDstIdx, setAbilityDstIdx] = useState(ABILITY_SKIP)
   const [legalMoves, setLegalMoves] = useState([])
   const [legalAbilities, setLegalAbilities] = useState([])
-  const [lastMove, setLastMove] = useState({srcX: -1, srcY: -1, dstX: -1, dstY: -1})
-  const [lastAbility, setLastAbility] = useState({srcX: -1, srcY: -1, dstX: -1, dstY: -1})
+  const [lastMove, setLastMove] = useState({srcIdx: MOVE_SKIP, dstIdx: MOVE_SKIP})
+  const [lastAbility, setLastAbility] = useState({srcIdx: ABILITY_SKIP, dstIdx: ABILITY_SKIP})
   const [gameStatus, setGameStatus] = useState("Player 1's move")
 
   useEffect(() => {
     // I don't understand how this works, why is it not always defined?
     if (typeof game.game === 'undefined')
       return
-    var history = game.game.history()
-    if(history.length == 0) {
-      setLastMove({ srcX: -1, srcY: -1, dstX: -1, dstY: -1 })
-      setLastAbility({ srcX: -1, srcY: -1, dstX: -1, dstY: -1 })
-    } else {
-      setLastMove(history[history.length-1][0])
-      setLastAbility(history[history.length-1][1])
-    }
+    if(game.game.moveNumber == 0) {
+      setLastMove({ srcIdx: MOVE_SKIP, dstIdx: MOVE_SKIP })
+      setLastAbility({ srcIdx: ABILITY_SKIP, dstIdx: ABILITY_SKIP })
+    } 
   }, [game])
 
   function getXYPosition(i) {
@@ -35,33 +31,29 @@ export default function BoardForSelfPlay({board, game}) {
     const y = Math.abs(Math.floor(i / 8) - 7)
     return {x, y}
   }
-  function getIndexFromXY(x, y) {
-    return Math.abs(7 - y) * 8 + x
-  }
+
   function isBlack(i) {
     const {x, y} = getXYPosition(i)
     return (x + y) % 2 == 1
   }
+
   function isLastMove(i) {
-    const {x, y} = getXYPosition(i)
-    return (lastMove.srcX == x && lastMove.srcY == y) || (lastMove.dstX == x && lastMove.dstY == y)
+    return (lastMove.srcIdx == i) || (lastMove.dstIdx == i)
   }
+
   function isLastAbility(i) {
-    const {x, y} = getXYPosition(i)
-    return (lastAbility.srcX == x && lastAbility.srcY == y) || (lastAbility.dstX == x && lastAbility.dstY == y)
+    return (lastAbility.srcIdx == i) || (lastAbility.dstIdx == i)
   }
 
   function isSelectedAsMovementSource(i) {
-    const {x, y} = getXYPosition(i)
-    if(x === movementSourceCoordinates.x && y === movementSourceCoordinates.y){
+    if(i === moveSrcIdx){
       return true
     }
     return false
   }
 
   function isSelectedAsAbilitySource(i) {
-    const {x, y} = getXYPosition(i)
-    if(x === abilitySourceCoordinates.x && y === abilitySourceCoordinates.y){
+    if(i === abilitySrcIdx){
       return true
     }
     return false
@@ -73,6 +65,7 @@ export default function BoardForSelfPlay({board, game}) {
     }
     return false
   }
+
   function isLegalAbility(i) {
     if(legalAbilities.includes(i)) {
       return true
@@ -127,103 +120,111 @@ export default function BoardForSelfPlay({board, game}) {
     return retval
   }
 
-
-  function handleMovementSourceSelection(coordinates) {
-    const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
-    setMovementSourceCoordinates(coordinates)
-    let legalMoves = game.game.legalMoves(coordinates.x, coordinates.y)
-    let moveIndices = legalMoves.map(coordinates => getIndexFromXY(coordinates.dstX, coordinates.dstY))
+  function handleMovementSourceSelection(squareIdx) {
+    if(!pieceBelongsToCurrentPlayer(squareIdx)) {
+      return
+    }
+    setMoveSrcIdx(squareIdx)
+    let legalMoves = game.game.legalMovesByPiece(squareIdx)
+    let moveIndices = legalMoves.map(pm => { return pm.moveDstIdx })
     if(legalMoves.length != 0) {
       setLegalMoves(moveIndices)
       setPhase(1)
     }
-    return
   }
-  function handleMovementDestinationSelection(coordinates) {
-    if(coordinates.x == movementSourceCoordinates.x && coordinates.y == movementSourceCoordinates.y){
+
+  function handleMovementDestinationSelection(squareIdx) {
+    if(squareIdx == moveSrcIdx){
       setPhase(0)
       return
     }
-    const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
-    if(gameObject.player != Player.NO_PLAYER) {
+    if(!legalMoves.includes(squareIdx)) {
       return
     }
-    setMovementDestinationCoordinates(coordinates)
-    let success = handleMove(movementSourceCoordinates.x, movementSourceCoordinates.y, coordinates.x, coordinates.y)
-    if(success) {
-      setPhase(2)
-      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s ability")
-    }
-
-    return
+    setMoveDstIdx(squareIdx)
+    let success = handleMove(moveSrcIdx, squareIdx)
+    setLastMove({srcIdx: moveSrcIdx, dstIdx: squareIdx})
+    setPhase(2)
+    setGameStatus("Player " + (game.game.currentPlayer+1) + "'s ability")
   }
-  function handleAbilitySourceSelection(coordinates) {
-    const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
-    setAbilitySourceCoordinates(coordinates)
-    let legalAbilities = game.game.legalAbilities(coordinates.x, coordinates.y)
-    let abilityIndices = legalAbilities.map(coordinates => getIndexFromXY(coordinates.dstX, coordinates.dstY))
+
+  function handleAbilitySourceSelection(squareIdx) {
+    if(!pieceBelongsToCurrentPlayer(squareIdx)) {
+      return
+    }
+    setAbilitySrcIdx(squareIdx)
+    let legalAbilities = game.game.allLegalAbilitiesByPiece(squareIdx)
+    let abilityIndices = legalAbilities.map(pa => { return pa.abilityDstIdx })
     if(legalAbilities.length != 0) {
       setLegalAbilities(abilityIndices)
       setPhase(3)
     }
-    return
   }
-  function handleAbilityDestinationSelection(coordinates) {
-    if(coordinates.x == abilitySourceCoordinates.x && coordinates.y == abilitySourceCoordinates.y){
+
+  function handleAbilityDestinationSelection(squareIdx) {
+    if(squareIdx == abilitySrcIdx){
       setPhase(2)
       return false
     }
+    if(!legalAbilities.includes(squareIdx)) {
+      return
+    }
 
-    const gameObject = game.game.getGameObjectByCoordinates(coordinates.x, coordinates.y)
-    setAbilityDestinationCoordinates(coordinates)
-    handleAbility(abilitySourceCoordinates.x, abilitySourceCoordinates.y, coordinates.x, coordinates.y)
+    setAbilityDstIdx(squareIdx)
+    handleAbility(moveSrcIdx, moveDstIdx, abilitySrcIdx, squareIdx)
+    setLastAbility({srcIdx: abilitySrcIdx, dstIdx: squareIdx})
     return true
   }
 
 
   function handleClick(i) {
-    const coordinates = getXYPosition(i)
     if(phase == 0) {
-      handleMovementSourceSelection(coordinates)
+      handleMovementSourceSelection(i)
     } else if(phase == 1) {
-      handleMovementDestinationSelection(coordinates)
+      handleMovementDestinationSelection(i)
     } else if(phase == 2) {
-      handleAbilitySourceSelection(coordinates)
+      handleAbilitySourceSelection(i)
     } else if(phase == 3) {
-      var success = handleAbilityDestinationSelection(coordinates)
+      var success = handleAbilityDestinationSelection(i)
       if(success) {
-        let [gameOver, winner] = game.game.gameOver()
+        let gameOver = game.game.gameOver()
         if(gameOver) {
           alert('You LOSE!')
           game.game.reset()
-          setMovementSourceCoordinates({ })
-          setMovementDestinationCoordinates({ })
-          setAbilitySourceCoordinates({ })
-          setAbilityDestinationCoordinates({ })
+          setMoveSrcIdx(-1)
+          setMoveDstIdx(-1)
+          setAbilitySrcIdx(-1)
+          setAbilityDstIdx(-1)
           setPhase(0)
-          setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
+          setGameStatus("Player " + (game.game.currentPlayer+1) + "'s move")
           updateView()
         } else {
+          setPhase(4)
           setGameStatus("Waiting for AI's action")
           AIAction()
         }
       }
-    } 
+    } else if(phase == 4) {
+      return // waiting for AI action
+    }
   }
 
   function skipMove() {
     if(phase == 0 || phase == 1) {
-      let success = handleMove(-1, -1, -1, -1)
+      let success = handleMove(MOVE_SKIP, MOVE_SKIP)
+      setMoveSrcIdx(MOVE_SKIP)
+      setMoveDstIdx(MOVE_SKIP)
       if(success) {
         setPhase(2)
-        setGameStatus("Player " + (game.game.playerTurn()+1) + "'s ability")
+        setGameStatus("Player " + (game.game.currentPlayer+1) + "'s ability")
       }
     }
   }
 
   function skipAbility() {
     if(phase == 2 || phase == 3) {
-      handleAbility(-1, -1, -1, -1)
+      handleAbility(moveSrcIdx, moveDstIdx, ABILITY_SKIP, ABILITY_SKIP)
+      setPhase(4)
       setGameStatus("Waiting for AI's action")
       AIAction()
     }
@@ -233,11 +234,7 @@ export default function BoardForSelfPlay({board, game}) {
     createModule().then((Module) => {
       var computeAction = Module.cwrap('computeAIAction', 'number', ['string'], [])
       var boardStr = game.game.boardToString()
-      // TODO:
-      // C++ Nichess uses different board representation (doesn't track phase)
-      // TypeScript Nichess will be rewritten to match the C++ version, but for now this will do.
-      var modifiedBoardStr = boardStr.slice(0, 2) + boardStr.slice(4) 
-      let action = computeAction(modifiedBoardStr)
+      let action = computeAction(boardStr)
       // action is a 9 digit int in form:
       // 1 moveSrcIdx moveDstIdx abilitySrcIdx abilityDstIdx
       // First digit is reserved as 1 to ensure that the action always has the same number of
@@ -247,41 +244,29 @@ export default function BoardForSelfPlay({board, game}) {
       let moveDstIdx = Math.floor(action / 10000) % 100
       let abilitySrcIdx = Math.floor(action / 100) % 100
       let abilityDstIdx = action % 100
-      // converting indexes to x y coordinates
-      var moveSrcX, moveSrcY, moveDstX, moveDstY, abilitySrcX, abilitySrcY, abilityDstX, abilityDstY
+
       if(moveSrcIdx == 99) { // skip move
-        moveSrcX = -1
-        moveSrcY = -1
-        moveDstX = -1
-        moveDstY = -1
-      } else {
-        moveSrcX = moveSrcIdx - Math.floor(moveSrcIdx / 8) * 8
-        moveSrcY = Math.floor(moveSrcIdx / 8)
-        moveDstX = moveDstIdx - Math.floor(moveDstIdx / 8) * 8
-        moveDstY = Math.floor(moveDstIdx / 8)
+        moveSrcIdx = MOVE_SKIP
+        moveDstIdx = MOVE_SKIP
       }
-
       if(abilitySrcIdx == 99) { // skip ability
-        abilitySrcX = -1
-        abilitySrcY = -1
-        abilityDstX = -1
-        abilityDstY = -1
-      } else {
-        abilitySrcX = abilitySrcIdx - Math.floor(abilitySrcIdx / 8) * 8
-        abilitySrcY = Math.floor(abilitySrcIdx / 8)
-        abilityDstX = abilityDstIdx - Math.floor(abilityDstIdx / 8) * 8
-        abilityDstY = Math.floor(abilityDstIdx / 8)
+        abilitySrcIdx = ABILITY_SKIP
+        abilityDstIdx = ABILITY_SKIP
       }
-      handleMove(moveSrcX, moveSrcY, moveDstX, moveDstY)
-      handleAbility(abilitySrcX, abilitySrcY, abilityDstX, abilityDstY)
 
-      setMovementSourceCoordinates({ })
-      setMovementDestinationCoordinates({ })
-      setAbilitySourceCoordinates({ })
-      setAbilityDestinationCoordinates({ })
+      handleMove(moveSrcIdx, moveDstIdx)
+      handleAbility(moveSrcIdx, moveDstIdx, abilitySrcIdx, abilityDstIdx)
+
+      setMoveSrcIdx(MOVE_SKIP)
+      setMoveDstIdx(MOVE_SKIP)
+      setAbilitySrcIdx(ABILITY_SKIP)
+      setAbilityDstIdx(ABILITY_SKIP)
+      setLastMove({srcIdx: moveSrcIdx, dstIdx: moveDstIdx})
+      setLastAbility({srcIdx: abilitySrcIdx, dstIdx: abilityDstIdx})
       setPhase(0)
-      setGameStatus("Player " + (game.game.playerTurn()+1) + "'s move")
-      let [gameOver, winner] = game.game.gameOver()
+      setGameStatus("Player " + (game.game.currentPlayer+1) + "'s move")
+      let gameOver = game.game.gameOver();
+      let winner = game.game.winner();
       if(gameOver) {
         alert('You LOSE!')
         game.game.reset()
@@ -295,14 +280,28 @@ export default function BoardForSelfPlay({board, game}) {
     'padding': '10px',
     'color': 'white'
   }
-  
+
+  /*
+   * Game is indexed bottom up. For a hypothetical 3x3 board this would look like:
+   * 6 7 8
+   * 3 4 5
+   * 0 1 2
+   * Web view is indexed top down. For a 3x3 board, this would look like:
+   * 0 1 2
+   * 3 4 5
+   * 6 7 8
+   * This function converts a web index to a game index.
+   */
+  function webIndexToGameIndex(i) {
+    return i % 8 + (Math.abs(Math.floor(i / 8) - 7)) * 8  
+  }
 
   return (
     <div className='board'>
       <div className='board'>
         {board.flat().map((piece, i) => (
-          <div key={i} className="square" onClick={() => handleClick(i)}>
-              <BoardSquare piece={piece} bgClass={getBgClass(i)} />
+          <div key={i} className="square" onClick={() => handleClick(webIndexToGameIndex(i))}>
+              <BoardSquare piece={piece} bgClass={getBgClass(webIndexToGameIndex(i))} />
           </div>
         ))}
       </div>
