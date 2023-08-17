@@ -3,7 +3,7 @@ import { Game, GameCache, pieceBelongsToPlayer, PieceType, MOVE_SKIP } from 'nic
 
 
 const gameCache = new GameCache()
-const game = new Game(gameCache)
+const game = new Game({gameCache: gameCache})
 
 export const gameSubject = new BehaviorSubject({
   board: game.board2D(),
@@ -37,7 +37,7 @@ export function isSquareEmpty(squareIdx) {
 }
 
 export function updateView() {
-  gameSubject.next({ board: game.board(), game: game })
+  gameSubject.next({ board: game.board2D(), game: game })
 }
 
 
